@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import signalConfig from './signal-config.js'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -8,11 +9,11 @@ export default defineConfig({
     port: 5001,
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:5000',
+        target: `http://${signalConfig.chart?.serverHost ?? '127.0.0.1'}:${signalConfig.chart?.serverPort ?? 5000}`,
         changeOrigin: true,
       },
       '/ws': {
-        target: 'ws://127.0.0.1:8765',
+        target: signalConfig.chart?.webSocketPort ? `ws://${signalConfig.chart.serverHost ?? '127.0.0.1'}:${signalConfig.chart.webSocketPort}` : `ws://${signalConfig.chart?.serverHost ?? '127.0.0.1'}:8765`,
         ws: true,
       },
       '/npl-time': {

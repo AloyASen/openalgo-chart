@@ -263,6 +263,74 @@ const ChartComponent = forwardRef(({
     // OHLC Header Bar State
     const [ohlcData, setOhlcData] = useState(null);
 
+    // Signals State
+    const [signalMarkers, setSignalMarkers] = useState([]);
+
+    // Fetch Signals
+    useEffect(() => {
+        if (!symbol) return;
+
+        const fetchSignals = async () => {
+            try {
+                // Assuming signal server runs on port 3001
+                const response = await fetch(`http://localhost:3001/api/signals?symbol=${encodeURIComponent(symbol)}`);
+                if (!response.ok) return; // Silent fail if server not running or no data
+                const signalList = await response.json();
+
+                const markers = signalList.map(s => {
+                    const time = typeof s.time === 'string'
+                        ? (new Date(s.time).getTime() / 1000)
+                        : s.time;
+
+                    if (s.type === 'BUY') {
+                        return {
+                            time: time,
+                            position: 'belowBar',
+                            color: '#00C853', // Green
+                            shape: 'arrowUp',
+                            text: 'BUY',
+                            size: 2
+                        };
+                    } else if (s.type === 'SELL') {
+                        return {
+                            time: time,
+                            position: 'aboveBar',
+                            color: '#D50000', // Red
+                            shape: 'arrowDown',
+                            text: 'SELL',
+                            size: 2
+                        };
+                    }
+                    return null;
+                }).filter(Boolean);
+
+                setSignalMarkers(markers);
+            } catch (err) {
+                // console.warn('Failed to fetch signals:', err);
+                // Ignore errors as signal server might not be running
+            }
+        };
+
+        fetchSignals();
+        // Poll every 5 seconds for new signals
+        const intervalId = setInterval(fetchSignals, 5000);
+        return () => clearInterval(intervalId);
+    }, [symbol]);
+
+    // Apply markers to chart when series is ready or markers change
+    useEffect(() => {
+        if (mainSeriesRef.current && signalMarkers.length > 0) {
+            try {
+                // We should respect existing markers if any, but since we don't track them separately
+                // and Lightweight charts overwrites, we just set these.
+                // If there were other markers, this might overwrite them.
+                mainSeriesRef.current.setMarkers(signalMarkers);
+            } catch (e) {
+                console.warn('Failed to set markers', e);
+            }
+        }
+    }, [signalMarkers, isLoading]); // Re-apply when loading finishes or markers update
+
     // Indicator Legend Dropdown State
     const [indicatorDropdownOpen, setIndicatorDropdownOpen] = useState(false);
     const [indicatorValues, setIndicatorValues] = useState({}); // Stores current values for each indicator

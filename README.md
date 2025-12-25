@@ -155,6 +155,16 @@ npm run preview
 - Larger Option Chain Picker modal (950px width, 550px content height)
 - More strikes visible at once for easier strategy building
 
+### MQTT Signal Receiver
+- Visualize Buy/Sell signals from MQTT topics directly on the chart
+- **BUY**: Green arrow below candle
+- **SELL**: Red arrow above candle
+- Filter signals by symbol automatically
+- Configure broker, topics, and ports in `signal-config.js`:
+  - **MQTT Broker**: Support for TCP (`tcp://localhost:1883`) and WebSocket (`ws://localhost:9001`) protocols.
+  - **Chart Proxy**: Configure backend API (`serverHost`, `serverPort`) and WebSocket (`webSocketPort`) proxy settings.
+- **Auto-Startup**: Receiver starts automatically with `npm run dev`
+
 ## Screenshot
 
 ![App screenshot](./chart.png)
