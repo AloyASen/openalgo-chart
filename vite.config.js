@@ -7,21 +7,45 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5001,
-    proxy: {
-      '/api': {
-        target: `http://${signalConfig.chart?.serverHost ?? '127.0.0.1'}:${signalConfig.chart?.serverPort ?? 5000}`,
-        changeOrigin: true,
-      },
-      '/ws': {
-        target: signalConfig.chart?.webSocketPort ? `ws://${signalConfig.chart.serverHost ?? '127.0.0.1'}:${signalConfig.chart.webSocketPort}` : `ws://${signalConfig.chart?.serverHost ?? '127.0.0.1'}:8765`,
-        ws: true,
-      },
-      '/npl-time': {
-        target: 'https://www.nplindia.in',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/npl-time/, '/cgi-bin/ntp_client'),
-        secure: true,
+    proxy: (() => {
+      const serverProtocol = process.env.OPENALGO_SERVER_PROTOCOL || 'http';
+      const serverHost = process.env.OPENALGO_SERVER_HOST || signalConfig.chart?.serverHost || '127.0.0.1';
+      const serverPort = process.env.OPENALGO_SERVER_PORT || signalConfig.chart?.serverPort;
+
+      // Build API target: omit default ports for TLS/standard HTTP when appropriate
+      let apiTarget = `${serverProtocol}://${serverHost}`;
+      if (serverPort && !(serverProtocol === 'https' && String(serverPort) === '443') && !(serverProtocol === 'http' && String(serverPort) === '80')) {
+        apiTarget += `:${serverPort}`;
       }
-    }
+
+      const wsProtocol = serverProtocol === 'https' ? 'wss' : 'ws';
+      const wsPort = process.env.OPENALGO_WS_PORT || signalConfig.chart?.webSocketPort;
+      let wsTarget = `${wsProtocol}://${serverHost}`;
+      if (wsPort && !(wsProtocol === 'wss' && String(wsPort) === '443') && !(wsProtocol === 'ws' && String(wsPort) === '80')) {
+        wsTarget += `:${wsPort}`;
+      }
+
+      const proxyMap = {
+        '/api': {
+          target: apiTarget,
+          changeOrigin: true,
+          secure: serverProtocol === 'https',
+        },
+        '/ws': {
+          target: wsTarget,
+          ws: true,
+          changeOrigin: true,
+          secure: serverProtocol === 'https',
+        },
+        '/npl-time': {
+          target: 'https://www.nplindia.in',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/npl-time/, '/cgi-bin/ntp_client'),
+          secure: true,
+        },
+      };
+
+      return proxyMap;
+    })(),
   }
 })

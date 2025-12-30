@@ -13,6 +13,9 @@ dist-ssr
 *.local
 package-lock.json
 
+# Local environment file (do NOT commit)
+/.env
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
