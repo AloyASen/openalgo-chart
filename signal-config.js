@@ -12,9 +12,11 @@ export default {
         // Prefer setting `OPENALGO_SERVER_HOST` and `OPENALGO_SERVER_PORT` in env.
         serverHost: process.env.OPENALGO_SERVER_HOST || 'upright-dog-rapidly.ngrok-free.app',
         // backend API port the chart frontend should proxy API requests to
-        serverPort: process.env.OPENALGO_SERVER_PORT || 8080,
+        // For ngrok URLs, leave empty (uses standard HTTPS port 443)
+        serverPort: process.env.OPENALGO_SERVER_PORT || '',
         // optional websocket port the chart frontend should proxy to
-        webSocketPort: process.env.OPENALGO_WS_PORT || 8765,
+        // For ngrok URLs, leave empty (uses standard HTTPS port 443)
+        webSocketPort: process.env.OPENALGO_WS_PORT || '',
         // API key used by the chart/backend API requests. Always prefer environment
         // variables (`OPENALGO_API_KEY` or `API_KEY`). Do NOT commit real keys.
         apiKey: process.env.OPENALGO_API_KEY || process.env.API_KEY || 'REPLACE_WITH_API_KEY',
