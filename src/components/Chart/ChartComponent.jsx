@@ -273,7 +273,8 @@ const ChartComponent = forwardRef(({
         const fetchSignals = async () => {
             try {
                 // Assuming signal server runs on port 3001
-                const response = await fetch(`http://localhost:3001/api/signals?symbol=${encodeURIComponent(symbol)}`);
+                const signalApiUrl = import.meta.env.VITE_SIGNAL_API_URL || 'http://localhost:3001';
+                const response = await fetch(`${signalApiUrl}/api/signals?symbol=${encodeURIComponent(symbol)}`);
                 if (!response.ok) return; // Silent fail if server not running or no data
                 const signalList = await response.json();
 
